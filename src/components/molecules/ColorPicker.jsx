@@ -24,49 +24,77 @@ const ColorPicker = ({ value = "#0066ff", onChange, className }) => {
     onChange(color)
   }
 
-  return (
+return (
     <div className={cn("relative", className)}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-8 h-8 rounded-md border-2 border-gray-300 hover:border-accent transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
         style={{ backgroundColor: value }}
+        title={`Current color: ${value}`}
       />
       
       {isOpen && (
-        <div className="absolute top-10 left-0 z-50 p-4 bg-surface border border-gray-200 rounded-lg shadow-lg w-64">
-          <div className="grid grid-cols-8 gap-2 mb-4">
-            {presetColors.map((color) => (
-              <button
-                key={color}
-                onClick={() => handleColorSelect(color)}
-                className="w-6 h-6 rounded border-2 border-gray-300 hover:border-accent transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
-                style={{ backgroundColor: color }}
-              />
-            ))}
-          </div>
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => setIsOpen(false)}
+          />
           
-          <div className="space-y-2">
-            <Input
-              type="color"
-              value={customColor}
-              onChange={handleCustomColorChange}
-              className="w-full h-10 p-1 cursor-pointer"
-            />
-            <Input
-              type="text"
-              value={customColor}
-              onChange={(e) => handleCustomColorChange(e)}
-              placeholder="#000000"
-              className="text-sm"
-            />
+          {/* Color picker panel */}
+          <div className="absolute top-10 left-0 z-50 p-4 bg-surface border border-gray-200 rounded-lg shadow-xl w-64">
+            <div className="grid grid-cols-8 gap-2 mb-4">
+              {presetColors.map((color) => (
+                <button
+                  key={color}
+                  onClick={() => handleColorSelect(color)}
+                  className={cn(
+                    "w-6 h-6 rounded border-2 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2",
+                    value === color 
+                      ? "border-accent scale-110 shadow-md" 
+                      : "border-gray-300 hover:border-accent hover:scale-105"
+                  )}
+                  style={{ backgroundColor: color }}
+                  title={color}
+                />
+              ))}
+            </div>
+            
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Pick Custom Color
+                </label>
+                <Input
+                  type="color"
+                  value={customColor}
+                  onChange={handleCustomColorChange}
+                  className="w-full h-10 p-1 cursor-pointer"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Hex Value
+                </label>
+                <Input
+                  type="text"
+                  value={customColor}
+                  onChange={(e) => handleCustomColorChange(e)}
+                  placeholder="#000000"
+                  className="text-sm font-mono"
+                  pattern="^#[0-9A-Fa-f]{6}$"
+                />
+              </div>
+            </div>
+            
+            <div className="flex gap-2 mt-4">
+              <Button size="sm" onClick={() => setIsOpen(false)} className="flex-1">
+                Done
+              </Button>
+            </div>
           </div>
-          
-          <div className="flex gap-2 mt-4">
-            <Button size="sm" onClick={() => setIsOpen(false)}>
-              Done
-            </Button>
-          </div>
-        </div>
+        </>
       )}
     </div>
   )

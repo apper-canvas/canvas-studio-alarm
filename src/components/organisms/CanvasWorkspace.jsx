@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState } from "react"
-import { fabric } from "fabric"
-import { toast } from "react-toastify"
-import Button from "@/components/atoms/Button"
-import Slider from "@/components/atoms/Slider"
-import ApperIcon from "@/components/ApperIcon"
-import LayerPanel from "@/components/organisms/LayerPanel"
-import PropertyPanel from "@/components/organisms/PropertyPanel"
-import { cn } from "@/utils/cn"
+import React, { useEffect, useRef, useState } from "react";
+import { fabric } from "fabric";
+import { toast } from "react-toastify";
+import ApperIcon from "@/components/ApperIcon";
+import LayerPanel from "@/components/organisms/LayerPanel";
+import PropertyPanel from "@/components/organisms/PropertyPanel";
+import Button from "@/components/atoms/Button";
+import Slider from "@/components/atoms/Slider";
+import { cn } from "@/utils/cn";
 
 const CanvasWorkspace = ({ selectedTool, toolOptions, onElementSelect }) => {
   const canvasRef = useRef(null)
@@ -20,34 +20,39 @@ const CanvasWorkspace = ({ selectedTool, toolOptions, onElementSelect }) => {
   const [historyIndex, setHistoryIndex] = useState(-1)
 
   // Initialize canvas
-  useEffect(() => {
-    if (canvasRef.current) {
+useEffect(() => {
+    if (canvasRef.current && !canvas) {
       const fabricCanvas = new fabric.Canvas(canvasRef.current, {
         width: 800,
         height: 600,
         backgroundColor: "#ffffff",
-        preserveObjectStacking: true
+        preserveObjectStacking: true,
+        selection: true,
+        renderOnAddRemove: true
       })
 
       // Canvas event handlers
       fabricCanvas.on("selection:created", (e) => {
         setSelectedObject(e.target)
-        onElementSelect(e.target)
+        onElementSelect?.(e.target)
       })
 
       fabricCanvas.on("selection:updated", (e) => {
         setSelectedObject(e.target)
-        onElementSelect(e.target)
+        onElementSelect?.(e.target)
       })
 
       fabricCanvas.on("selection:cleared", () => {
         setSelectedObject(null)
-        onElementSelect(null)
+        onElementSelect?.(null)
       })
 
-      fabricCanvas.on("object:added", () => {
-        updateCanvasObjects(fabricCanvas)
-        saveState(fabricCanvas)
+      fabricCanvas.on("object:added", (e) => {
+        // Skip initial load events
+        if (e.target && !e.target._isInitialLoad) {
+          updateCanvasObjects(fabricCanvas)
+          saveState(fabricCanvas)
+        }
       })
 
       fabricCanvas.on("object:removed", () => {
@@ -56,10 +61,30 @@ const CanvasWorkspace = ({ selectedTool, toolOptions, onElementSelect }) => {
       })
 
       fabricCanvas.on("object:modified", () => {
+        updateCanvasObjects(fabricCanvas)
         saveState(fabricCanvas)
       })
 
+      fabricCanvas.on("object:moving", () => {
+        updateCanvasObjects(fabricCanvas)
+      })
+
+      fabricCanvas.on("object:scaling", () => {
+        updateCanvasObjects(fabricCanvas)
+      })
+
+      fabricCanvas.on("object:rotating", () => {
+        updateCanvasObjects(fabricCanvas)
+      })
+
+      // Set initial canvas state
       setCanvas(fabricCanvas)
+      updateCanvasObjects(fabricCanvas)
+      
+      // Save initial state
+      setTimeout(() => {
+        saveState(fabricCanvas)
+      }, 100)
 
       return () => {
         fabricCanvas.dispose()
@@ -89,16 +114,22 @@ const CanvasWorkspace = ({ selectedTool, toolOptions, onElementSelect }) => {
   }
 
   // Handle tool actions
-  useEffect(() => {
+useEffect(() => {
     if (!canvas || !selectedTool) return
 
     const handleCanvasClick = (e) => {
+      // Only handle click if we're not selecting/manipulating an object
+      if (canvas.getActiveObject()) return
+      
       if (selectedTool === "text") {
         addTextElement(e.pointer)
       } else if (selectedTool === "rectangle") {
         addRectangle(e.pointer)
       } else if (selectedTool === "circle") {
         addCircle(e.pointer)
+      } else if (selectedTool === "image") {
+        // Trigger image upload
+        document.getElementById("image-upload")?.click()
       }
     }
 
@@ -110,21 +141,24 @@ const CanvasWorkspace = ({ selectedTool, toolOptions, onElementSelect }) => {
   }, [canvas, selectedTool, toolOptions])
 
   // Add text element
-  const addTextElement = (pointer) => {
+const addTextElement = (pointer) => {
     if (!canvas) return
 
     const text = new fabric.IText(toolOptions.text || "Edit text", {
-      left: pointer.x,
-      top: pointer.y,
+      left: pointer.x - 50,
+      top: pointer.y - 10,
       fontSize: toolOptions.fontSize || 20,
       fill: toolOptions.color || "#000000",
       fontFamily: toolOptions.fontFamily || "Inter",
-      name: `Text ${canvasObjects.length + 1}`
+      name: `Text ${canvasObjects.length + 1}`,
+      editable: true
     })
 
     text.id = `text-${Date.now()}`
     canvas.add(text)
     canvas.setActiveObject(text)
+    canvas.renderAll()
+    text.enterEditing()
     toast.success("Text element added")
   }
 
@@ -133,8 +167,8 @@ const CanvasWorkspace = ({ selectedTool, toolOptions, onElementSelect }) => {
     if (!canvas) return
 
     const rect = new fabric.Rect({
-      left: pointer.x,
-      top: pointer.y,
+      left: pointer.x - 50,
+      top: pointer.y - 30,
       width: 100,
       height: 60,
       fill: toolOptions.fillColor || "#0066ff",
@@ -146,6 +180,7 @@ const CanvasWorkspace = ({ selectedTool, toolOptions, onElementSelect }) => {
     rect.id = `rect-${Date.now()}`
     canvas.add(rect)
     canvas.setActiveObject(rect)
+    canvas.renderAll()
     toast.success("Rectangle added")
   }
 
@@ -154,8 +189,8 @@ const CanvasWorkspace = ({ selectedTool, toolOptions, onElementSelect }) => {
     if (!canvas) return
 
     const circle = new fabric.Circle({
-      left: pointer.x,
-      top: pointer.y,
+      left: pointer.x - 40,
+      top: pointer.y - 40,
       radius: 40,
       fill: toolOptions.fillColor || "#0066ff",
       stroke: toolOptions.strokeColor || "#000000",
@@ -166,33 +201,42 @@ const CanvasWorkspace = ({ selectedTool, toolOptions, onElementSelect }) => {
     circle.id = `circle-${Date.now()}`
     canvas.add(circle)
     canvas.setActiveObject(circle)
+    canvas.renderAll()
     toast.success("Circle added")
   }
 
-  // Handle image upload
+// Handle image upload
   const handleImageUpload = (file) => {
-    if (!canvas) return
+    if (!canvas || !file) return
 
     const reader = new FileReader()
     reader.onload = (e) => {
       fabric.Image.fromURL(e.target.result, (img) => {
-        img.scale(0.5)
+        // Scale image to fit canvas better
+        const maxWidth = 400
+        const maxHeight = 300
+        const scale = Math.min(maxWidth / img.width, maxHeight / img.height, 1)
+        
         img.set({
           left: 100,
           top: 100,
+          scaleX: scale,
+          scaleY: scale,
           name: `Image ${canvasObjects.length + 1}`
         })
+        
         img.id = `img-${Date.now()}`
         canvas.add(img)
         canvas.setActiveObject(img)
+        canvas.renderAll()
         toast.success("Image added")
-      })
+      }, { crossOrigin: 'anonymous' })
     }
     reader.readAsDataURL(file)
   }
 
   // Zoom controls
-  const handleZoomChange = (newZoom) => {
+const handleZoomChange = (newZoom) => {
     if (!canvas) return
     
     setZoom(newZoom)
@@ -203,12 +247,16 @@ const CanvasWorkspace = ({ selectedTool, toolOptions, onElementSelect }) => {
 
   // Undo/Redo
   const handleUndo = () => {
-    if (historyIndex > 0 && canvas) {
+    if (historyIndex > 0 && canvas && history.length > 1) {
       const prevState = history[historyIndex - 1]
       canvas.loadFromJSON(prevState, () => {
         canvas.renderAll()
         setHistoryIndex(historyIndex - 1)
         updateCanvasObjects(canvas)
+        // Clear selection after undo
+        canvas.discardActiveObject()
+        setSelectedObject(null)
+        onElementSelect?.(null)
       })
     }
   }
@@ -220,22 +268,34 @@ const CanvasWorkspace = ({ selectedTool, toolOptions, onElementSelect }) => {
         canvas.renderAll()
         setHistoryIndex(historyIndex + 1)
         updateCanvasObjects(canvas)
+        // Clear selection after redo
+        canvas.discardActiveObject()
+        setSelectedObject(null)
+        onElementSelect?.(null)
       })
     }
   }
 
   // Keyboard shortcuts
-  useEffect(() => {
+useEffect(() => {
     const handleKeyDown = (e) => {
+      // Don't handle shortcuts if user is typing in an input or text element
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return
+      
       if (e.ctrlKey && e.key === "z" && !e.shiftKey) {
         e.preventDefault()
         handleUndo()
       } else if ((e.ctrlKey && e.key === "y") || (e.ctrlKey && e.shiftKey && e.key === "Z")) {
         e.preventDefault()
         handleRedo()
-      } else if (e.key === "Delete" && selectedObject) {
+      } else if (e.key === "Delete" && selectedObject && canvas) {
+        e.preventDefault()
         canvas.remove(selectedObject)
+        canvas.renderAll()
         toast.success("Element deleted")
+      } else if (e.key === "Escape" && canvas) {
+        canvas.discardActiveObject()
+        canvas.renderAll()
       }
     }
 
@@ -244,12 +304,24 @@ const CanvasWorkspace = ({ selectedTool, toolOptions, onElementSelect }) => {
   }, [historyIndex, history, selectedObject, canvas])
 
   // Delete selected object
-  const deleteSelected = () => {
+const deleteSelected = () => {
     if (selectedObject && canvas) {
       canvas.remove(selectedObject)
+      canvas.renderAll()
       toast.success("Element deleted")
     }
   }
+
+  // Handle grid toggle
+  useEffect(() => {
+    if (canvas) {
+      if (showGrid) {
+        canvas.setBackgroundColor('transparent', canvas.renderAll.bind(canvas))
+      } else {
+        canvas.setBackgroundColor('#ffffff', canvas.renderAll.bind(canvas))
+      }
+    }
+  }, [showGrid, canvas])
 
   return (
     <div className="flex-1 flex flex-col bg-background">
@@ -357,11 +429,11 @@ const CanvasWorkspace = ({ selectedTool, toolOptions, onElementSelect }) => {
                 </div>
               </>
             )}
-            <canvas
+<canvas
               ref={canvasRef}
               className={cn(
                 "fabric-canvas shadow-lg",
-                showGrid && "bg-grid-pattern"
+                showGrid && "canvas-with-grid"
               )}
             />
           </div>
@@ -371,29 +443,32 @@ const CanvasWorkspace = ({ selectedTool, toolOptions, onElementSelect }) => {
         <LayerPanel
           objects={canvasObjects}
           selectedObject={selectedObject}
-          onObjectSelect={(obj) => {
-            if (canvas) {
+onObjectSelect={(obj) => {
+            if (canvas && obj) {
               canvas.setActiveObject(obj)
               canvas.renderAll()
+              setSelectedObject(obj)
+              onElementSelect?.(obj)
             }
           }}
           onObjectToggle={(obj) => {
-            obj.visible = !obj.visible
-            if (canvas) {
+            if (obj && canvas) {
+              obj.set('visible', !obj.visible)
               canvas.renderAll()
               updateCanvasObjects(canvas)
             }
           }}
           onObjectDelete={(obj) => {
-            if (canvas) {
+            if (canvas && obj) {
               canvas.remove(obj)
+              canvas.renderAll()
               toast.success("Element deleted")
             }
           }}
         />
       </div>
 
-      {/* Property Panel */}
+{/* Property Panel */}
       {selectedObject && (
         <PropertyPanel
           selectedObject={selectedObject}
@@ -401,11 +476,11 @@ const CanvasWorkspace = ({ selectedTool, toolOptions, onElementSelect }) => {
             if (selectedObject && canvas) {
               selectedObject.set(property, value)
               canvas.renderAll()
+              updateCanvasObjects(canvas)
             }
           }}
         />
       )}
-
       {/* Hidden file input for image upload */}
       <input
         type="file"
