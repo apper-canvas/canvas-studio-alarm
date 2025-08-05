@@ -1,0 +1,66 @@
+[
+  {
+    "Id": 1,
+    "name": "Modern Business Card",
+    "description": "Clean and professional business card template with modern typography",
+    "category": "business",
+    "thumbnail": null,
+    "downloads": 1245
+  },
+  {
+    "Id": 2,
+    "name": "Instagram Story Template",
+    "description": "Eye-catching Instagram story template with vibrant colors",
+    "category": "social",
+    "thumbnail": null,
+    "downloads": 892
+  },
+  {
+    "Id": 3,
+    "name": "Event Flyer",
+    "description": "Dynamic event flyer template perfect for concerts and parties",
+    "category": "print",
+    "thumbnail": null,
+    "downloads": 654
+  },
+  {
+    "Id": 4,
+    "name": "Web Banner Set",
+    "description": "Collection of web banners in various sizes for online advertising",
+    "category": "web",
+    "thumbnail": null,
+    "downloads": 423
+  },
+  {
+    "Id": 5,
+    "name": "Pitch Deck Slides",
+    "description": "Professional presentation template for startup pitch decks",
+    "category": "presentations",
+    "thumbnail": null,
+    "downloads": 1067
+  },
+  {
+    "Id": 6,
+    "name": "Facebook Cover Photo",
+    "description": "Stylish Facebook cover photo template with placeholder text",
+    "category": "social",
+    "thumbnail": null,
+    "downloads": 789
+  },
+  {
+    "Id": 7,
+    "name": "Product Catalog",
+    "description": "Multi-page catalog template for showcasing products",
+    "category": "print",
+    "thumbnail": null,
+    "downloads": 345
+  },
+  {
+    "Id": 8,
+    "name": "Email Newsletter",
+    "description": "Responsive email newsletter template with modern design",
+    "category": "web",
+    "thumbnail": null,
+    "downloads": 567
+  }
+]

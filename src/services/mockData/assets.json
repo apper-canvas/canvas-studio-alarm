@@ -1,0 +1,86 @@
+[
+  {
+    "Id": 1,
+    "name": "Corporate Logo Pack",
+    "type": "images",
+    "size": "2.4 MB",
+    "preview": null
+  },
+  {
+    "Id": 2,
+    "name": "UI Icon Set",
+    "type": "icons",
+    "size": "1.2 MB",
+    "preview": null
+  },
+  {
+    "Id": 3,
+    "name": "Montserrat Font Family",
+    "type": "fonts",
+    "size": "876 KB",
+    "preview": null
+  },
+  {
+    "Id": 4,
+    "name": "Abstract Backgrounds",
+    "type": "graphics",
+    "size": "5.1 MB",
+    "preview": null
+  },
+  {
+    "Id": 5,
+    "name": "Product Photography",
+    "type": "images",
+    "size": "8.3 MB",
+    "preview": null
+  },
+  {
+    "Id": 6,
+    "name": "Social Media Icons",
+    "type": "icons",
+    "size": "456 KB",
+    "preview": null
+  },
+  {
+    "Id": 7,
+    "name": "Roboto Font Collection",
+    "type": "fonts",
+    "size": "1.1 MB",
+    "preview": null
+  },
+  {
+    "Id": 8,
+    "name": "Geometric Patterns",
+    "type": "graphics",
+    "size": "3.2 MB",
+    "preview": null
+  },
+  {
+    "Id": 9,
+    "name": "Team Photos",
+    "type": "images",
+    "size": "12.7 MB",
+    "preview": null
+  },
+  {
+    "Id": 10,
+    "name": "Weather Icons",
+    "type": "icons",
+    "size": "234 KB",
+    "preview": null
+  },
+  {
+    "Id": 11,
+    "name": "Open Sans Font",
+    "type": "fonts",
+    "size": "987 KB",
+    "preview": null
+  },
+  {
+    "Id": 12,
+    "name": "Watercolor Textures",
+    "type": "graphics",
+    "size": "4.6 MB",
+    "preview": null
+  }
+]
